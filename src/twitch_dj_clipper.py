@@ -250,7 +250,7 @@ def main():
     # main loop reading message
     while True:
         if error_count == 3:
-            raise RuntimeError("tried to reconnect to chat 10 times and failed")
+            raise RuntimeError("tried to reconnect to chat 3 times and failed")
 
         try:
 
@@ -269,10 +269,14 @@ def main():
                         logging.debug(f"Ping message from twitch: {resp}")
                         sock.send("PONG\n".encode('utf-8'))
 
+                    if resp.startswith('RECONNECT'):
+                        logging.debug(f"RECONNECT message from twitch: {resp}")
+                        error_count = reconnect_sock(error_count)
+
                     #if "tmi.twitch.tv CAP * ACK :twitch.tv/tags twitch.tv/commands" in resp:
                     #    sock.send(f"PRIVMSG #{config.channel} : clipper ready to go! MrDestructoid  \n".encode('utf-8'))
 
-                    elif len(resp) > 0 and "PRIVMSG" in resp:
+                    elif (len(resp) > 0 and "PRIVMSG" in resp) and (not config.quiet):
                         message_headers, message = resp.split("PRIVMSG", 1)
                         username = get_username(resp)
 
