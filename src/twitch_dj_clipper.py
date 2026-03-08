@@ -117,7 +117,7 @@ def handle_resp(response_raw: str) -> str:
 def clip(broadcaster_id: int, message_headers: str, username: str, message: str):
     logging.debug(f"triggered clip for {username}")
     is_live = False
-    clip_title = "no title"
+    clip_title = "no_title"
 
     if check_mod_or_broadcaster(message_headers):
 
@@ -159,12 +159,12 @@ def clip(broadcaster_id: int, message_headers: str, username: str, message: str)
             elapsed_timestamp = current_timestamp - started_timestamp
             elapsed_time_formatted = timestamp_to_time_str(elapsed_timestamp)
 
-            clips_file = os.path.join("clip timestamps",f"clips-{started_date}.txt")
+            clips_file = os.path.join("clip_timestamps",f"clips-{started_date}.txt")
 
-            if clip_title_match := re.findall("!clip (.*)\\r\\n", message, re.MULTILINE | re.IGNORECASE): 
+            if clip_title_match := re.findall("!clip (.*)$", message, re.MULTILINE | re.IGNORECASE): 
                 clip_title = str(clip_title_match[0])
 
-            os.makedirs("clip timestamps", exist_ok=True)
+            os.makedirs("clip_timestamps", exist_ok=True)
 
             if not exists(clips_file):
                 with open(clips_file, 'w') as File:

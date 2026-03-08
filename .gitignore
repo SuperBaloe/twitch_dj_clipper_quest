@@ -10,3 +10,5 @@
 compose.yaml
 test
 __pycache__
+*sync-conflict*
+*.sw*
