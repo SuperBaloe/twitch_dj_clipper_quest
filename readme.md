@@ -26,7 +26,7 @@ allow_stick: True # wether or not to allow the !stick command, a small easter eg
 ```
 5. run the twitch chat bot with the following command in the root of the project ```uv run main.py```
 6. when you are ready to generate your clips run the following command in the root of the project ```uv run generate_clips.py```
-* alternativly you can run the appropriate ```start twitchbot``` or ```start clip generator``` files for your os
+* alternativly you can run the appropriate ```start_twitchbot``` or ```start_clip_generator``` files for your os
 
 A docker image is also available at ```keyboardmedic/twitch_dj_clipper:latest```
 
@@ -46,7 +46,7 @@ services:
         target: /usr/src/app/config
       - type: bind
         source: /path/to/your/clip_timestamps
-        target: "/usr/src/app/clip timestamps"
+        target: "/usr/src/app/clip_timestamps"
       - type: bind
         source: /path/to/your/clips
         target: "/usr/src/app/clips"

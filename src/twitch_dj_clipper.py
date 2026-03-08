@@ -152,7 +152,7 @@ def clip(broadcaster_id: int, message_headers: str, username: str, message: str)
             started_time = get_stream_json["data"][0]["started_at"]
             started_time = datetime.datetime.fromisoformat(started_time)
             started_timestamp = int(started_time.timestamp())
-            started_date = f"{started_time.year}-{started_time.month:02d}-{started_time.day:02d}"
+            started_date = f"{started_time.year}-{started_time.month:02d}-{started_time.day:02d}-{started_time.hour:02d}"
 
             current_time = datetime.datetime.now()
             current_timestamp = int(current_time.timestamp())
@@ -225,7 +225,6 @@ def main():
 
                 for resp in response_list:
                     logging.debug(f"processing message: {resp}")
-
                     # returns pong when twitch sends a ping to keep connection alive
                     if resp.startswith('PING'):
                         logging.debug(f"Ping message from twitch: {resp}")
@@ -234,6 +233,9 @@ def main():
                     elif resp.startswith('RECONNECT'):
                         logging.debug(f"RECONNECT message from twitch: {resp}")
                         error_count = reconnect_sock(error_count)
+                    
+                    elif resp == ':tmi.twitch.tv NOTICE * :Login unsuccessful':
+                        raise RuntimeError("was unable to log in to twitch irc, this probably means your oath token is invalid")
 
                     #if "tmi.twitch.tv CAP * ACK :twitch.tv/tags twitch.tv/commands" in resp:
                     #    sock.send(f"PRIVMSG #{config.channel} : clipper ready to go! MrDestructoid  \n".encode('utf-8'))

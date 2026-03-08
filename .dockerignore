@@ -12,3 +12,4 @@ test
 __pycache__
 *sync-conflict*
 *.sw*
+convert_edl.py
