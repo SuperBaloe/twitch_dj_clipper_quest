@@ -3,20 +3,11 @@ import src.housey_logging
 import logging
 import socket
 import requests
-import time
-import threading
-from flask import Flask, request
-import ssl
-from subprocess import call
-from werkzeug.serving import make_server
-import json
 import datetime
-import sys
 import os
 from os.path import exists
 import src.config_loader
 import random
-import select
 import re
 
 #variables
@@ -25,39 +16,6 @@ server = 'irc.chat.twitch.tv'
 port = 6667
 oath_url = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=wdsrlwh9xtnmkfh64rdp6a95lrwho7&redirect_uri=http://localhost:8888&scope=channel%3Abot&state=c3ab8aa609ea11e793ae92361f002671"
 token = ""
-
-class ServerThread(threading.Thread):
-
-    def __init__(self, app):
-        threading.Thread.__init__(self)
-        self.server = make_server('localhost', 8888, app)
-        self.ctx = app.app_context()
-        self.ctx.push()
-
-    def run(self):
-        print('starting server')
-        self.server.serve_forever()
-
-    def shutdown(self):
-        self.server.shutdown()
-
-def start_server():
-    global server
-    app = Flask('myapp')
-
-    @app.route('/')
-    def webhook():
-            token_request = request.query_string
-            print("Data received from Webhook is: ", request)
-            return(f"{token_request}, you can now close this tab")
-            
-    server = ServerThread(app)
-    server.start()
-    print('server started')
-
-def stop_server():
-    global server
-    server.shutdown()
 
 def timestamp_to_time_str(time_stamp) -> str:
     hours, remainder = divmod(time_stamp, 3600)
@@ -81,8 +39,10 @@ def get_token():
         
 def check_mod_or_broadcaster(message_headers: str) -> bool:
     if "mod=1" in message_headers or "broadcaster/1" in message_headers:
+        logging.debug("user is mod or broadcaster")
         return(True)
     else:
+        logging.debug("user is NOT a mod or broadcaster")
         return(False)
 
 def get_username(resp: str):
@@ -101,19 +61,20 @@ def get_ids() -> tuple[int,int]:
     getbot_response = requests.get(f"https://api.twitch.tv/helix/users?login={config.bot_name}", headers={'Authorization':f"Bearer {token}", 'Client-Id':config.twitch_api_id})
     getbot_responsejson = getbot_response.json()
     bot_id = getbot_responsejson["data"][0]["id"]
+    logging.debug(f"broadcaster id = {broadcaster_id} bot id = {bot_id}")
     return(broadcaster_id,bot_id)
 
 def create_sock():
     global sock
     sock = socket.socket()
-    sock.settimeout(60)
+    sock.settimeout(1800)
 
 def connect_to_irc():
     sock.connect((server, port))
     sock.send(f"PASS oauth:{config.oath_token}\n".encode('utf-8'))
     sock.send(f"NICK {config.bot_name}\n".encode('utf-8'))
     sock.send(f"JOIN #{config.channel}\n".encode('utf-8'))
-    sock.send(f"CAP REQ :twitch.tv/tags twitch.tv/commands\n".encode('utf-8'))
+    sock.send("CAP REQ :twitch.tv/tags twitch.tv/commands\n".encode('utf-8'))
 
 def get_auth_workaround():
     logging.info("please open the following link in a browser and authorize, once done copy the acces_token value from your url in the browser to the config.yaml:")
@@ -181,6 +142,7 @@ def clip(broadcaster_id: int, message_headers: str, username: str, message: str)
         try: 
             if str(get_stream_json["data"][0]["type"]).lower() == "live":
                 is_live = True
+                logging.debug(f"{config.channel} is live")
         
         except:
             sock.send(f"PRIVMSG #{config.channel} : @{username} {config.channel} is not live \n".encode('utf-8'))
@@ -212,7 +174,7 @@ def clip(broadcaster_id: int, message_headers: str, username: str, message: str)
                 File.write(f"{elapsed_timestamp},{username},{clip_title}\n")
 
             sock.send(f"PRIVMSG #{config.channel} :MrDestructoid saved timestamp for clip {elapsed_time_formatted} MrDestructoid\n".encode('utf-8'))
-            logging.debug(f"saved timestamp for clip {elapsed_time_formatted} with title {clip_title} for user {username}")
+            logging.debug(f"saved timestamp for clip {elapsed_time_formatted} with title {clip_title} for user {username} in file {clips_file}")
     
     else:
         sock.send(f"PRIVMSG #{config.channel} : Sorry @{username}, you dont have enough rights to create a clip \n".encode('utf-8'))
@@ -269,7 +231,7 @@ def main():
                         logging.debug(f"Ping message from twitch: {resp}")
                         sock.send("PONG\n".encode('utf-8'))
 
-                    if resp.startswith('RECONNECT'):
+                    elif resp.startswith('RECONNECT'):
                         logging.debug(f"RECONNECT message from twitch: {resp}")
                         error_count = reconnect_sock(error_count)
 

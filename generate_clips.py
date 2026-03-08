@@ -18,6 +18,7 @@ def create_clips(input_file: str, list_of_clip_timestamps: list, clip_date:str):
     for i, clip_stamp in enumerate(list_of_clip_timestamps):
         
         input_file_type = str(input_file.split(".")[-1])
+        input_file_wrapped= wrap_string(input_file)
 
         clip_list = clip_stamp.split(",")
         username = sanitize_filename(clip_list[1])
@@ -28,6 +29,7 @@ def create_clips(input_file: str, list_of_clip_timestamps: list, clip_date:str):
         sanitized_name = sanitize_filename(file_title)
         
         output_file = os.path.join(output_path,username,f"{sanitized_name}.{input_file_type}")
+        output_file_wrapped = wrap_string(output_file)
 
         clip_start_time = timestamp_to_time_str(int(clip_list[0]) - int(config.clip_start_before_timestamp))
         clip_duration = timestamp_to_time_str(config.total_clip_duration)
@@ -42,7 +44,7 @@ def create_clips(input_file: str, list_of_clip_timestamps: list, clip_date:str):
             f'-metadata artist="{config.metadata_artist}" '
             f'-metadata title="{file_title}" '
             f'-c copy {{}}'
-            ).format(input_file, output_file)
+            ).format(input_file_wrapped, output_file_wrapped)
 
         subprocess.call(command, shell=True)
 
@@ -64,10 +66,7 @@ def sanitize_filename(name: str, replacement: str="_") -> str:
 
 def wrap_string(user_input: str) -> str:
     user_input = user_input.strip("\"\'")
-
-    if " " in user_input:
-        user_input = f"'{user_input}'"
-
+    user_input = f"'{user_input}'"
     return(user_input)
 
 def remove_trailing(user_input: str) -> str:
@@ -83,24 +82,30 @@ def get_parent_folder(user_input: str) -> str:
         del user_input[-1]
         user_input = "/".join(user_input)
 
-    user_input = wrap_string(user_input)
+    #user_input = wrap_string(user_input)
+   
+    logging.debug(f"parent folder = {user_input}")
 
     return(user_input)
 
 def y_or_n(user_input: str) -> bool:
     if user_input == "" or user_input.lower() == "y":
+        logging.debug("user input = True")
         return(True)
     else:
+        logging.debug("user input = False")
         return(False)
 
 def build_path(file_path: str, file_name: str) -> str:
-    return(os.path.join(file_path, file_name))
+    finished_path = os.path.join(file_path, file_name)
+    logging.debug(f"finished path = {finished_path}") 
+    return(finished_path)
 
 def timestamp_to_time_str(time_stamp) -> str:
     hours, remainder = divmod(time_stamp, 3600)
     minutes, seconds = divmod(remainder, 60)
     time_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-
+    logging.debug(f"converted time = {time_str}")
     return time_str
 
 def get_last_file_in_folder(folder_path: str) -> str:
@@ -111,6 +116,15 @@ def get_last_file_in_folder(folder_path: str) -> str:
 
     return max(folder_glob, key=os.path.getctime)
 
+def clean_path(path_input: str) -> str:
+    if os.name == "posix":
+        cleaned_path = path_input.replace("\\", "")
+    else:
+        cleaned_path = path_input.replace("\\", "/")
+
+    logging.debug(f"cleaned up path = {cleaned_path}")
+    return(cleaned_path)
+
 def main():
     logging.info("starting twitch dj clipper")
 
@@ -120,7 +134,7 @@ def main():
     use_vod_parent = False
     use_clips_parent = False
 
-    use_last_files = input(f"do you want to use the last created clips file and last created vod (Y) or n\n")
+    use_last_files = input("do you want to use the last created clips file and last created vod (Y) or n\n")
     use_last_files = y_or_n(use_last_files)
 
     if use_last_files:
@@ -149,9 +163,12 @@ def main():
                 clips_file = build_path(clips_file_parent, clips_file)
             else:
                 clips_file = input("please provide path to the clips timestamp file you want to use\n")
+        
+            logging.debug(f"clips file = {clips_file}")
+            clips_file = clean_path(clips_file)
 
             #clips_file = wrap_string(clips_file)
-            clips_file = remove_trailing(clips_file)
+            #clips_file = remove_trailing(clips_file)
             clips_file_parent = get_parent_folder(clips_file)
 
             # get clip timestamps from file
@@ -160,17 +177,21 @@ def main():
 
             # gets vod file from user input
             if vod_file_parent:
-                use_vod_parent = input(f"do you want to use the previous parent path of {vod_file_parent} for your vod (Y) or n\n")
+                use_vod_parent = input("do you want to use the previous parent path of {vod_file_parent} for your vod (Y) or n\n")
                 use_vod_parent = y_or_n(use_vod_parent)
             
             if use_vod_parent:
-                input_file = input(f"please provide name of the vod you want to use in {vod_file_parent}\n")
+                input_file = input("please provide name of the vod you want to use in {vod_file_parent}\n")
                 input_file = build_path(vod_file_parent, input_file)
             else:
                 input_file = input("please provide path to the vod you want to use\n")
+            
+            logging.debug(f"input file = {input_file}")
+
+            input_file = clean_path(input_file)
 
             #input_file = wrap_string(input_file)
-            input_file = remove_trailing(input_file)
+            #input_file = remove_trailing(input_file)
 
             vod_file_parent = get_parent_folder(input_file)
 
