@@ -23,7 +23,7 @@ def create_clips(input_file: str, list_of_clip_timestamps: list, clip_date:str):
         clip_list = clip_stamp.split(",")
         username = sanitize_filename(clip_list[1])
         clip_title = clip_list[2].replace(" ", "-")
-        if clip_title == "no_title":
+        if clip_title == "no_title" or clip_title == "no title" or clip_title == "no-title":
             clip_title = i
         file_title = f"{clip_date}_{clip_title}_{username}_{config.channel}"
         sanitized_name = sanitize_filename(file_title)

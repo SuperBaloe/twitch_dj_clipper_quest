@@ -230,7 +230,7 @@ def main():
                         logging.debug(f"Ping message from twitch: {resp}")
                         sock.send("PONG\n".encode('utf-8'))
 
-                    elif resp.startswith('RECONNECT'):
+                    elif resp == ':tmi.twitch.tv RECONNECT':
                         logging.debug(f"RECONNECT message from twitch: {resp}")
                         error_count = reconnect_sock(error_count)
                     
