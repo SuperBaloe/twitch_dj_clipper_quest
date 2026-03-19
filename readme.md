@@ -3,7 +3,7 @@
 # what does it do?
 runs locally and saves timestamps to a file trough a ```!clip (clip title)``` command only accessable to mods and the broadcaster, wich will save a timestamp, the clip creators username and the title seperated by comma's to a txt file wich is called ```clips-(current date).txt```
 
-after stream you run the clip generator and point it to your clips timestamp file and to the corresponding locally recorded vod and it will create clips at the timestamp with a set time, or alternativly, tell it to use the last files in both folders to run automagicly, it will then use ffmpeg to create clips without re-encoding with the set length as defined in the config. the clips will be sorted in folder by creator in the ```clips``` folder in the root of the project with the name ```(channel name)_(creator name)_(clip title)_(clip date)```
+after stream you run the clip generator and point it to your clips timestamp file and to the corresponding locally recorded vod and it will create clips at the timestamp with a set time, or alternativly, tell it to use the last files in both folders to run automagicly, it will then use ffmpeg to create clips without re-encoding with the set length as defined in the config. the clips will be sorted in folder by creator in the ```clips``` folder in the root of the project with the name ```(clip date)_(clip title)_(creator name)_(channel name)```
 
 to get a link to the github in your chat you can use ```!getclip``` or to use the build in easter egg command you can use ```!stick```
 
@@ -23,6 +23,9 @@ total_clip_duration: 180 #seconds, the total time in second of how long you want
 metadata_artist: twitch_dj_clipper #name added to the clip files metadata
 vod_folder_path: "/path/to/your/vods/folder" #path to your vods folder used for generating clips with the latest files automagicly
 allow_stick: True # wether or not to allow the !stick command, a small easter egg wich returns a "<username> has a <random> cm stick"
+quiet: False # the script will run without interacting with chat and only connect for debugging purposes
+extra_params: "" # a string of extra ffmpeg parameters to use in the clip generation that will be inserted before the output file is defined in the ffmpeg command, the ffmpeg command included in the generate_clips is 'ffmpeg -i {{}} -ss {clip_start_time} -t {clip_duration} -metadata artist="{config.metadata_artist}" -metadata title="{file_title}" {config.extra_params} -c copy {{}}'
+
 ```
 5. run the twitch chat bot with the following command in the root of the project ```uv run main.py```
 6. when you are ready to generate your clips run the following command in the root of the project ```uv run generate_clips.py```

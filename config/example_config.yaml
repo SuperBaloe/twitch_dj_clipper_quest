@@ -8,3 +8,6 @@ total_clip_duration: 180 #seconds, the total time in second of how long you want
 metadata_artist: twitch_dj_clipper #name added to the clip files metadata
 vod_folder_path: "/path/to/your/vods/folder" #path to your vods folder used for generating clips with the latest files automagicly
 allow_stick: True # wether or not to allow the !stick command, a small easter egg wich returns a "<username> has a <random> cm stick"
+quiet: False # the script will run without interacting with chat and only connect for debugging purposes
+extra_params: "" # a string of extra ffmpeg parameters to use in the clip generation that will be inserted before the output file is defined in the ffmpeg command, the ffmpeg command included in the generate_clips is 'ffmpeg -i {{}} -ss {clip_start_time} -t {clip_duration} -metadata artist="{config.metadata_artist}" -metadata title="{file_title}" {config.extra_params} -c copy {{}}'
+
