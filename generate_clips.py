@@ -42,7 +42,8 @@ def create_clips(input_file: str, list_of_clip_timestamps: list, clip_date:str):
             f'-ss {clip_start_time} '
             f'-t {clip_duration} '
             f'-metadata artist="{config.metadata_artist}" '
-            f'-metadata title="{file_title}" '
+            #f'-metadata title="{file_title}" '
+            f'{config.extra_params} '
             f'-c copy {{}}'
             ).format(input_file_wrapped, output_file_wrapped)
 

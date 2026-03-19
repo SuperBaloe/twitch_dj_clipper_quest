@@ -11,7 +11,8 @@ default_config = {
     "total_clip_duration": 60,
     "metadata_artist": "twitch_dj_clipper",
     "vod_folder_path": "path/to/thingie",
-    "quiet": False
+    "quiet": False,
+    "extra_params": ""
 }
 
 # loads config from file
