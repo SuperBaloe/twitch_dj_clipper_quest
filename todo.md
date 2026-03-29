@@ -1,2 +1,1 @@
-- fix oath flow
-- make script start files for all os
+- add ability to run clip generator in container

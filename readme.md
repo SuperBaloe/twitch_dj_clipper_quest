@@ -1,5 +1,3 @@
-# currently still very alpha, not ready for use unless you like recoding half of it
-
 # what does it do?
 runs locally and saves timestamps to a file trough a ```!clip (clip title)``` command only accessable to mods and the broadcaster, wich will save a timestamp, the clip creators username and the title seperated by comma's to a txt file wich is called ```clips-(current date).txt```
 
@@ -39,7 +37,6 @@ docker run -it -d --name twitch_dj_clipper -v "/path/to/your/configs":/usr/src/a
 ```
 or using a docker compose file
 ```
-version: '3'
 services:
   clipper:
     image: keyboardmedic/twitch_dj_clipper:latest
@@ -59,4 +56,4 @@ services:
 ```
 
 # wip
-currently no way exsists of running the clip generator in docker, only the twitch chat bot will function, i plan on adding the functionality later on
+currently no way exsists of running the clip generator in docker easily, only the twitch chat bot will function, i plan on adding the functionality later on
