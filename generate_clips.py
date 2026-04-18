@@ -1,8 +1,8 @@
 import subprocess
 
 import src.housey_logging
-
 src.housey_logging.configure()
+import src.settings_menu
 
 import logging
 import sys
@@ -10,9 +10,13 @@ import os
 import src.config_loader
 import glob
 import re
+import questionary
 
 output_path = "clips"
 clips_timestamp_files_path = os.path.join("clip timestamps","*")
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def create_clips(input_file: str, list_of_clip_timestamps: list, clip_date:str):
     for i, clip_stamp in enumerate(list_of_clip_timestamps):
@@ -126,83 +130,144 @@ def clean_path(path_input: str) -> str:
     logging.debug(f"cleaned up path = {cleaned_path}")
     return(cleaned_path)
 
+def main_menu():
+    return questionary.select(
+        "=== Main Menu ===",
+        choices=[
+            questionary.Choice("Start clipper", value="1"),
+           #questionary.Choice("Test mode", value="2"),
+            questionary.Choice("Settings", value="3"),
+            questionary.Choice("Exit", value="exit"),
+        ]
+    ).ask()
+
 def main():
-    logging.info("starting twitch dj clipper")
+    src.config_loader.create_config_if_missing()
+    while True:
+        clear_screen()
+        menu_choice = main_menu()
 
-    keep_going = True
-    vod_file_parent = False
-    clips_file_parent = False
-    use_vod_parent = False
-    use_clips_parent = False
+        if menu_choice == "1":
+            logging.info("starting twitch_dj_clipper twitch chatbot")
+            logging.info("only errors will be displayed unless otherwise configured")
+            #src.twitch_dj_clipper.main()
 
-    use_last_files = input("do you want to use the last created clips file and last created vod (Y) or n\n")
-    use_last_files = y_or_n(use_last_files)
+            logging.info("starting twitch dj clipper")
 
-    if use_last_files:
-        clips_file = get_last_file_in_folder(clips_timestamp_files_path)
-        print(f"clip timestamp file to use = {clips_file}")
+            keep_going = True
+            vod_file_parent = False
+            clips_file_parent = False
+            use_vod_parent = False
+            use_clips_parent = False
 
-        list_of_clip_timestamps, clips_date = get_clip_timestamps(clips_file)
-
-        input_file = get_last_file_in_folder(os.path.join(config.vod_folder_path,"*"))
-        input_file = wrap_string(input_file)
-        print(f"vod to use = {input_file} ")
-
-        create_clips(input_file, config.output_file_type, list_of_clip_timestamps, clips_date)
+            use_last_files = questionary.confirm(
+                "do you want to use the last created clips file and last created vod: ",
+            #    auto_enter=False,# change if you want to use enter as conformation. default is true
+            ).ask()
+            logging.debug(f"user input = {use_last_files}")
 
 
-    else:
-        while keep_going:
+            if use_last_files:
+                clips_file = get_last_file_in_folder(clips_timestamp_files_path)
+                print(f"clip timestamp file to use = {clips_file}")
 
-            # gets clips timestamp file from user input
-            if clips_file_parent:
-                use_clips_parent = input(f"do you want to use the previous parent path of {clips_file_parent} for your clips file (Y) or n\n")
-                use_clips_parent = y_or_n(use_clips_parent)
+                list_of_clip_timestamps, clips_date = get_clip_timestamps(clips_file)
 
-            if use_clips_parent:
-                clips_file = input(f"please provide name of clips timestamp file you want to use in {clips_file_parent}\n")
-                clips_file = build_path(clips_file_parent, clips_file)
+                input_file = get_last_file_in_folder(os.path.join(config.vod_folder_path,"*"))
+                input_file = wrap_string(input_file)
+                print(f"vod to use = {input_file} ")
+
+                create_clips(input_file, config.output_file_type, list_of_clip_timestamps, clips_date)
+
+
             else:
-                clips_file = input("please provide path to the clips timestamp file you want to use\n")
-        
-            logging.debug(f"clips file = {clips_file}")
-            clips_file = clean_path(clips_file)
+                while keep_going:
 
-            #clips_file = wrap_string(clips_file)
-            #clips_file = remove_trailing(clips_file)
-            clips_file_parent = get_parent_folder(clips_file)
+                    # gets clips timestamp file from user input
+                    if clips_file_parent:
+                        use_clips_parent = questionary.confirm(
+                            f"do you want to use the previous parent path of {clips_file_parent} for your clips file: "
+                        ).ask()
+                        logging.debug(f"user input = {use_clips_parent}")
+                    #    use_clips_parent = input(f"do you want to use the previous parent path of {clips_file_parent} for your clips file (Y) or n\n")
+                    #    use_clips_parent = y_or_n(use_clips_parent)
 
-            # get clip timestamps from file
-            list_of_clip_timestamps, clips_date = get_clip_timestamps(clips_file)
-
-
-            # gets vod file from user input
-            if vod_file_parent:
-                use_vod_parent = input("do you want to use the previous parent path of {vod_file_parent} for your vod (Y) or n\n")
-                use_vod_parent = y_or_n(use_vod_parent)
-            
-            if use_vod_parent:
-                input_file = input("please provide name of the vod you want to use in {vod_file_parent}\n")
-                input_file = build_path(vod_file_parent, input_file)
-            else:
-                input_file = input("please provide path to the vod you want to use\n")
-            
-            logging.debug(f"input file = {input_file}")
-
-            input_file = clean_path(input_file)
-
-            #input_file = wrap_string(input_file)
-            #input_file = remove_trailing(input_file)
-
-            vod_file_parent = get_parent_folder(input_file)
-
-            # creates clips
-            create_clips(input_file, list_of_clip_timestamps, clips_date)
-
-            # continues or exits based on user input
-            keep_going = input("do you want to create more clips with different files? (Y) or N\n")
-            keep_going = y_or_n(keep_going)
+                    if use_clips_parent:
+                        clips_file = questionary.text(
+                            f"please provide name of clips timestamp file you want to use in {clips_file_parent}: "
+                        ).ask()
+                        logging.debug(f"user input = {clips_file}")
+                    #    clips_file = input(f"please provide name of clips timestamp file you want to use in {clips_file_parent}\n")
+                        clips_file = build_path(clips_file_parent, clips_file)
+                    else:
+                        clips_file = questionary.path(
+                            "please provide path to the clips timestamp file you want to use: "
+                        ).ask()
+                    #    clips_file = input("please provide path to the clips timestamp file you want to use\n")
                 
+                    logging.debug(f"clips file = {clips_file}")
+                    clips_file = clean_path(clips_file)
+
+                    #clips_file = wrap_string(clips_file)
+                    #clips_file = remove_trailing(clips_file)
+                    clips_file_parent = get_parent_folder(clips_file)
+
+                    # get clip timestamps from file
+                    list_of_clip_timestamps, clips_date = get_clip_timestamps(clips_file)
+
+
+                    # gets vod file from user input
+                    if vod_file_parent:
+                        use_vod_parent = questionary.confirm(
+                            f"do you want to use the previous parent path of {vod_file_parent} for your vod: "
+                        ).ask()
+                        logging.debug(f"user input = {use_vod_parent}")
+                    #    use_vod_parent = input("do you want to use the previous parent path of {vod_file_parent} for your vod (Y) or n\n")
+                    #    use_vod_parent = y_or_n(use_vod_parent)
+                    
+                    if use_vod_parent:
+                        input_file = questionary.text(
+                            f"please provide name of the vod you want to use in {vod_file_parent}: "
+                        ).ask()
+                    #    input_file = input("please provide name of the vod you want to use in {vod_file_parent}\n")
+                        input_file = build_path(vod_file_parent, input_file)
+                    else:
+                        input_file = questionary.path(
+                            "please provide path to the vod you want to use: "
+                        ).ask()
+                    #    input_file = input("please provide path to the vod you want to use\n")
+                    
+                    logging.debug(f"input file = {input_file}")
+
+                    input_file = clean_path(input_file)
+
+                    #input_file = wrap_string(input_file)
+                    #input_file = remove_trailing(input_file)
+
+                    vod_file_parent = get_parent_folder(input_file)
+
+                    # creates clips
+                    create_clips(input_file, list_of_clip_timestamps, clips_date)
+
+                    # continues or exits based on user input
+                    keep_going = questionary.confirm(
+                        "do you want to create more clips with different files? "
+                    ).ask
+                    logging.debug(f"user input = {keep_going}")
+                    #keep_going = input("do you want to create more clips with different files? (Y) or N\n")
+                    #keep_going = y_or_n(keep_going)
+
+        elif menu_choice == "2":
+            pass #need to make a test mode
+
+        elif menu_choice == "3":
+            src.settings_menu.settings_menu()
+
+        elif menu_choice == "exit" or menu_choice is None:
+            clear_screen()
+            break
+
+
 if __name__ == "__main__":
 
     # log exceptions
