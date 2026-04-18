@@ -134,9 +134,9 @@ def main_menu():
     return questionary.select(
         "=== Main Menu ===",
         choices=[
-            questionary.Choice("Start clipper", value="1"),
+            questionary.Choice("Generate clips", value="1"),
            #questionary.Choice("Test mode", value="2"),
-            questionary.Choice("Settings", value="3"),
+            questionary.Choice("Config settings", value="3"),
             questionary.Choice("Exit", value="exit"),
         ]
     ).ask()
@@ -148,10 +148,6 @@ def main():
         menu_choice = main_menu()
 
         if menu_choice == "1":
-            logging.info("starting twitch_dj_clipper twitch chatbot")
-            logging.info("only errors will be displayed unless otherwise configured")
-            #src.twitch_dj_clipper.main()
-
             logging.info("starting twitch dj clipper")
 
             keep_going = True
@@ -161,7 +157,7 @@ def main():
             use_clips_parent = False
 
             use_last_files = questionary.confirm(
-                "do you want to use the last created clips file and last created vod: ",
+                "do you want to use the last created clips file and last created vod? ",
             #    auto_enter=False,# change if you want to use enter as conformation. default is true
             ).ask()
             logging.debug(f"user input = {use_last_files}")
@@ -186,7 +182,7 @@ def main():
                     # gets clips timestamp file from user input
                     if clips_file_parent:
                         use_clips_parent = questionary.confirm(
-                            f"do you want to use the previous parent path of {clips_file_parent} for your clips file: "
+                            f"do you want to use the previous parent path of {clips_file_parent} for your clips file? "
                         ).ask()
                         logging.debug(f"user input = {use_clips_parent}")
                     #    use_clips_parent = input(f"do you want to use the previous parent path of {clips_file_parent} for your clips file (Y) or n\n")
@@ -219,7 +215,7 @@ def main():
                     # gets vod file from user input
                     if vod_file_parent:
                         use_vod_parent = questionary.confirm(
-                            f"do you want to use the previous parent path of {vod_file_parent} for your vod: "
+                            f"do you want to use the previous parent path of {vod_file_parent} for your vod? "
                         ).ask()
                         logging.debug(f"user input = {use_vod_parent}")
                     #    use_vod_parent = input("do you want to use the previous parent path of {vod_file_parent} for your vod (Y) or n\n")
