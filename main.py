@@ -174,6 +174,7 @@ def main_menu():
 
 
 def main():
+    src.config_loader.create_config_if_missing()
     while True:
         clear_screen()
         menu_choice = main_menu()
