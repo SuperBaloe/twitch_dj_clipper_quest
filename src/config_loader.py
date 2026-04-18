@@ -22,6 +22,12 @@ def load_config() -> dict:
         merged_config = config_object({**default_config, **config_yaml})
     logging.debug("succesfully loaded config")       
     return(merged_config)
+#saves config to file
+def save_config(config) -> None:
+    config_dict = config.__dict__
+    with open("config/config.yaml", "w") as config_file:
+        yaml.safe_dump(config_dict, config_file, default_flow_style=False, sort_keys=False)
+    logging.debug("succesfully saved config")
 
 class config_object:
     def __init__(self, d=None):
