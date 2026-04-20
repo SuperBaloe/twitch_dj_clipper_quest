@@ -14,8 +14,10 @@ def is_user_facing():
 def main():
 
     if is_user_facing():
+        logging.debug("Program is opend in user facing terminal")
+        logging.info("Loading config menu")
         src.config_loader.create_config_if_missing()
-        src.settings_menu.settings_menu()
+        src.settings_menu.menu()
 
     else:
         logging.info("starting twitch_dj_clipper twitch chatbot")

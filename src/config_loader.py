@@ -19,6 +19,7 @@ def create_config_if_missing():
     if not os.path.exists("config/config.yaml"):
         with open("config/config.yaml", "w") as file:
             yaml.safe_dump(default_config, file, indent=4)
+            logging.debug("created config.yaml")
 
 
 # loads config from file
